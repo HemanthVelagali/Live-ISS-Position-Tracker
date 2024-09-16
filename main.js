@@ -1,3 +1,5 @@
+
+
 // Set up Scene, Camera, and Renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -50,13 +52,6 @@ const issMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red col
 const issMarker = new THREE.Mesh(issGeometry, issMaterial);
 scene.add(issMarker);
 
-// ISS Label
-const labelGeometry = new THREE.PlaneGeometry(30, 10);
-const labelTexture = new THREE.TextureLoader().load('assets/label.png'); // Replace with your label image
-const labelMaterial = new THREE.MeshBasicMaterial({ map: labelTexture, transparent: true, opacity: 0.7 });
-const issLabel = new THREE.Mesh(labelGeometry, labelMaterial);
-scene.add(issLabel);
-
 // Path line geometry and material
 const pathPoints = [];
 const pathGeometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
@@ -77,13 +72,6 @@ function latLongToVector3(lat, lon, radius) {
 }
 
 // Function to update ISS position on the globe
-let previousData = {
-    latitude: 'N/A',
-    longitude: 'N/A',
-    altitude: 'N/A',
-    velocity: 'N/A'
-};
-
 async function updateISSPosition() {
     try {
         // Fetch ISS position from the Where the ISS at? API
@@ -99,7 +87,6 @@ async function updateISSPosition() {
         // Convert lat/lon to 3D position on the globe
         const issPosition = latLongToVector3(latitude, longitude, earthRadius);
         issMarker.position.copy(issPosition); // Update ISS marker position on the globe
-        issLabel.position.copy(issPosition); // Update ISS label position to match marker
 
         // Add the new position to the path
         pathPoints.push(issPosition);
@@ -113,17 +100,21 @@ async function updateISSPosition() {
         document.getElementById('iss-alt').textContent = `Altitude: ${altitude.toFixed(2)} km`;
         document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
         
-        // Set a fixed number of passengers
-        document.getElementById('iss-passengers').textContent = `Passengers: 9`;
+        // Fetch number of passengers (crew) from Open Notify API
+        const crewResponse = await fetch('http://api.open-notify.org/astros.json');
+        if (!crewResponse.ok) throw new Error('Network response was not ok.');
+        const crewData = await crewResponse.json();
+        
+        const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
+        document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
 
     } catch (error) {
         console.error('Error fetching ISS position or crew:', error);
-        // Use previous data if available
-        document.getElementById('iss-lat').textContent = `Latitude: ${previousData.latitude}`;
-        document.getElementById('iss-lon').textContent = `Longitude: ${previousData.longitude}`;
-        document.getElementById('iss-alt').textContent = `Altitude: ${previousData.altitude}`;
-        document.getElementById('iss-vel').textContent = `Velocity: ${previousData.velocity}`;
-        document.getElementById('iss-passengers').textContent = `Passengers: 9`;
+        document.getElementById('iss-lat').textContent = `Latitude: N/A`;
+        document.getElementById('iss-lon').textContent = `Longitude: N/A`;
+        document.getElementById('iss-alt').textContent = `Altitude: N/A`;
+        document.getElementById('iss-vel').textContent = `Velocity: N/A`;
+        document.getElementById('iss-passengers').textContent = `Passengers: N/A`;
     }
 }
 
@@ -177,8 +168,8 @@ function animate() {
 }
 animate();
 
-// Update the ISS position every 15 seconds
-setInterval(updateISSPosition, 15000); // Update every 15 seconds
+// Update the ISS position every 5 seconds
+setInterval(updateISSPosition, 5000); // Update every 5 seconds
 
 // Update the time every second
 setInterval(updateLocalTime, 1000); // Update every second
@@ -208,13 +199,15 @@ function openNASAISSPage() {
 
 // Function to open a 3D local model
 function open3DModel() {
-    // Redirect to the 3D model
-    window.open('https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en', '_blank');
+    // Your code to open a 3D local model
+    // For example, redirect to a new page or show a modal with the 3D model
+    alert('Open 3D Model feature is not implemented yet.');
 }
 
 // Function to show the ISS path on the map
 function showISSPath() {
-    // Placeholder for showing ISS path
+    // Your code to show the ISS path
+    // For example, render the path on the globe or map
     alert('Show ISS Path feature is not implemented yet.');
 }
 
