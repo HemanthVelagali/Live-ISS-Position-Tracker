@@ -34,149 +34,91 @@ scene.add(globe);
 const sunlight = new THREE.DirectionalLight(0xffffff, 1.0);
 scene.add(sunlight);
 
-const ambientLight = new THREE.AmbientLight(0x333333);
+const ambientLight = new THREE.AmbientLight(0x404040, 1.0); // Soft light
 scene.add(ambientLight);
 
-// Add OrbitControls to allow interaction with the globe (rotation only by user)
+// OrbitControls for camera control
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.05;
-controls.minDistance = 200;
-controls.maxDistance = 600;
+controls.enableZoom = true;
 
-// ISS Dot/Marker on the globe
-const issGeometry = new THREE.SphereGeometry(2, 16, 16); // Small sphere for the ISS marker
-const issMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red color for the ISS marker
-const issMarker = new THREE.Mesh(issGeometry, issMaterial);
-scene.add(issMarker);
+// ISS Dot
+const issGeometry = new THREE.SphereGeometry(5, 32, 32); // Small sphere for ISS
+const issMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red color for ISS
+const issDot = new THREE.Mesh(issGeometry, issMaterial);
+scene.add(issDot);
 
-// Path line geometry and material
-const pathPoints = [];
-const pathGeometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
-const pathMaterial = new THREE.LineBasicMaterial({ color: 0xff00ff, opacity: 0.8 });
-const pathLine = new THREE.Line(pathGeometry, pathMaterial);
-scene.add(pathLine);
+// Function to update ISS position on the globe
+function updateISSPosition(lat, lon) {
+    // Convert latitude and longitude to radians
+    const latRad = THREE.MathUtils.degToRad(lat);
+    const lonRad = THREE.MathUtils.degToRad(lon);
 
-// Previous data storage
-let previousISSData = {
-    latitude: null,
-    longitude: null,
-    altitude: null,
-    velocity: null,
-    passengers: null
-};
+    // Calculate Cartesian coordinates
+    const x = earthRadius * Math.cos(latRad) * Math.cos(lonRad);
+    const y = earthRadius * Math.sin(latRad);
+    const z = earthRadius * Math.cos(latRad) * Math.sin(lonRad);
 
-// Convert latitude/longitude to 3D position on the globe
-function latLongToVector3(lat, lon, radius) {
-    const phi = (90 - lat) * (Math.PI / 180); // Convert latitude to polar angle (phi)
-    const theta = (lon + 180) * (Math.PI / 180); // Convert longitude to azimuthal angle (theta)
-
-    const x = -radius * Math.sin(phi) * Math.cos(theta); // Calculate 3D x coordinate
-    const y = radius * Math.cos(phi); // Calculate 3D y coordinate
-    const z = radius * Math.sin(phi) * Math.sin(theta); // Calculate 3D z coordinate
-
-    return new THREE.Vector3(x, y, z); // Return the 3D position as a vector
+    // Update ISS dot position
+    issDot.position.set(x, y, z);
 }
 
-// Function to update ISS position and details on the globe
-async function updateISSData() {
+// Update ISS details function
+async function updateISSDetails() {
     try {
-        // Fetch ISS position from the Where the ISS at? API
+        // Fetch ISS data from API
         const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
         if (!response.ok) throw new Error('Network response was not ok.');
         const data = await response.json();
 
-        const latitude = data.latitude;
-        const longitude = data.longitude;
-        const altitude = data.altitude; // in kilometers
-        const velocity = data.velocity; // in km/h
+        // Update ISS coordinates and details
+        document.getElementById('iss-lat').innerText = `Latitude: ${data.latitude.toFixed(4)}`;
+        document.getElementById('iss-lon').innerText = `Longitude: ${data.longitude.toFixed(4)}`;
+        document.getElementById('iss-alt').innerText = `Altitude: ${data.altitude.toFixed(2)} km`;
+        document.getElementById('iss-vel').innerText = `Velocity: ${data.velocity.toFixed(2)} km/h`;
 
-        // Convert lat/lon to 3D position on the globe
-        const issPosition = latLongToVector3(latitude, longitude, earthRadius);
-        issMarker.position.copy(issPosition); // Update ISS marker position on the globe
-
-        // Add the new position to the path
-        pathPoints.push(issPosition);
-        pathGeometry.setFromPoints(pathPoints);
-
-        // Update ISS Coordinates Display
-        document.getElementById('iss-lat').textContent = `Latitude: ${latitude.toFixed(2)}°`;
-        document.getElementById('iss-lon').textContent = `Longitude: ${longitude.toFixed(2)}°`;
-
-        // Update ISS Details Display with new altitude and velocity
-        previousISSData.altitude = altitude;
-        previousISSData.velocity = velocity;
-        document.getElementById('iss-alt').textContent = `Altitude: ${altitude.toFixed(2)} km`;
-        document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
+        // Update ISS position on the globe
+        updateISSPosition(data.latitude, data.longitude);
 
     } catch (error) {
-        console.error('Error fetching ISS position or details:', error);
+        console.error('Error fetching ISS details:', error);
 
-        // Display previous data if new data fetch fails
-        document.getElementById('iss-lat').textContent = `Latitude: ${previousISSData.latitude !== null ? previousISSData.latitude.toFixed(2) + '°' : 'N/A'}`;
-        document.getElementById('iss-lon').textContent = `Longitude: ${previousISSData.longitude !== null ? previousISSData.longitude.toFixed(2) + '°' : 'N/A'}`;
-        document.getElementById('iss-alt').textContent = `Altitude: ${previousISSData.altitude !== null ? previousISSData.altitude.toFixed(2) + ' km' : 'N/A'}`;
-        document.getElementById('iss-vel').textContent = `Velocity: ${previousISSData.velocity !== null ? previousISSData.velocity.toFixed(2) + ' km/h' : 'N/A'}`;
+        // Display previous data or default message
+        document.getElementById('iss-lat').innerText = `Latitude: Error`;
+        document.getElementById('iss-lon').innerText = `Longitude: Error`;
+        document.getElementById('iss-alt').innerText = `Altitude: Error`;
+        document.getElementById('iss-vel').innerText = `Velocity: Error`;
     }
 }
 
-// Function to update ISS passengers (crew)
-async function updateISSPassengers() {
-    try {
-        // Fetch number of passengers (crew) from Open Notify API
-        const crewResponse = await fetch('https://api.open-notify.org/astros.json');
-        if (!crewResponse.ok) throw new Error('Network response was not ok.');
-        const crewData = await crewResponse.json();
-        
-        const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
-        previousISSData.passengers = issCrew;
-        document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
-
-    } catch (error) {
-        console.error('Error fetching ISS crew data:', error);
-
-        // Display previous passenger data if new data fetch fails
-        document.getElementById('iss-passengers').textContent = `Passengers: ${previousISSData.passengers !== null ? previousISSData.passengers : 'N/A'}`;
-    }
-}
-
-// Update ISS altitude and velocity every 15 seconds
-setInterval(updateISSData, 15000); // 15 seconds
-
-// Update ISS passengers every 60 minutes
-setInterval(updateISSPassengers, 3600000); // 60 minutes
-
-// Initial updates
-updateISSData();
-updateISSPassengers();
-
-// Function to update the user's local time
+// Function to update local time
 function updateLocalTime() {
-    try {
-        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone; // Get user's timezone
-        const now = new Date().toLocaleString('en-US', { timeZone: userTimezone });
-        const formattedTime = new Date(now).toLocaleTimeString('en-US', { hour12: false });
-        document.getElementById('digital-clock').textContent = `Local Time (${userTimezone}): ${formattedTime}`;
-    } catch (error) {
-        console.error('Error fetching local time:', error);
-        document.getElementById('digital-clock').textContent = `Local Time: N/A`;
-    }
+    const now = new Date();
+    const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+    const localTime = now.toLocaleTimeString([], options);
+    document.getElementById('digital-clock').innerText = localTime;
 }
 
-// Update local time every second
-setInterval(updateLocalTime, 1000); // 1 second
+// Call updateISSDetails every 15 seconds
+setInterval(updateISSDetails, 15000);
 
-// Animation loop
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update(); // Update controls
-    renderer.render(scene, camera);
-}
-animate();
+// Call updateLocalTime every second
+setInterval(updateLocalTime, 1000);
 
-// Handle window resizing
+// Initial calls to populate data immediately
+updateISSDetails();
+updateLocalTime();
+
+// Handle window resize
 window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 });
+
+// Animation loop
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+}
+animate();
