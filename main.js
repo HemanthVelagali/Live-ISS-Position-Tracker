@@ -1,6 +1,4 @@
-// main.js
-
-// Constants for API endpoints
+// Constants for API URLs
 const ISS_POSITION_URL = 'https://api.wheretheiss.at/v1/satellites/25544';
 const CREW_INFO_URL = 'https://api.open-notify.org/astros.json';
 
@@ -107,8 +105,16 @@ async function updateISSPosition() {
         if (!crewResponse.ok) throw new Error(`Network response was not ok: ${crewResponse.statusText}`);
         const crewData = await crewResponse.json();
 
-        const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
-        document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
+        console.log('Crew Data:', crewData); // Debugging: log the crew data
+
+        // Ensure crewData has the structure we expect
+        if (crewData && crewData.people) {
+            const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
+            document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
+        } else {
+            console.error('Unexpected crew data structure:', crewData);
+            document.getElementById('iss-passengers').textContent = `Passengers: N/A`;
+        }
 
     } catch (error) {
         console.error('Error fetching ISS position or crew:', error);
@@ -185,11 +191,11 @@ window.addEventListener('resize', () => {
 
 // Toggle the visibility of the menu
 function toggleMenu() {
-    const menu = document.getElementById('options-menu');
+    const menu = document.getElementById('menu');
     if (menu) {
         menu.classList.toggle('hidden');
     } else {
-        console.error('Element with ID "options-menu" not found');
+        console.error('Element with ID "menu" not found');
     }
 }
 
