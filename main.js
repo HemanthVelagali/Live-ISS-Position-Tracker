@@ -74,7 +74,7 @@ let lastKnownLatitude = 'N/A';
 let lastKnownLongitude = 'N/A';
 let lastKnownAltitude = 'N/A';
 let lastKnownVelocity = 'N/A';
-let lastKnownPassengers = 'N/A';
+let lastKnownPassengers = '9';
 
 // Function to update ISS position on the globe
 async function updateISSPosition() {
