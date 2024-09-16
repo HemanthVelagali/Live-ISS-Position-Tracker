@@ -69,6 +69,13 @@ function latLongToVector3(lat, lon, radius) {
     return new THREE.Vector3(x, y, z); // Return the 3D position as a vector
 }
 
+// Store last known data
+let lastKnownLatitude = 'N/A';
+let lastKnownLongitude = 'N/A';
+let lastKnownAltitude = 'N/A';
+let lastKnownVelocity = 'N/A';
+let lastKnownPassengers = 'N/A';
+
 // Function to update ISS position on the globe
 async function updateISSPosition() {
     try {
@@ -91,12 +98,16 @@ async function updateISSPosition() {
         pathGeometry.setFromPoints(pathPoints);
 
         // Update ISS Coordinates Display
-        document.getElementById('iss-lat').textContent = `Latitude: ${latitude.toFixed(2)}°`;
-        document.getElementById('iss-lon').textContent = `Longitude: ${longitude.toFixed(2)}°`;
+        lastKnownLatitude = latitude.toFixed(2);
+        lastKnownLongitude = longitude.toFixed(2);
+        document.getElementById('iss-lat').textContent = `Latitude: ${lastKnownLatitude}°`;
+        document.getElementById('iss-lon').textContent = `Longitude: ${lastKnownLongitude}°`;
 
         // Update ISS Details Display
-        document.getElementById('iss-alt').textContent = `Altitude: ${altitude.toFixed(2)} km`;
-        document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
+        lastKnownAltitude = altitude.toFixed(2);
+        lastKnownVelocity = velocity.toFixed(2);
+        document.getElementById('iss-alt').textContent = `Altitude: ${lastKnownAltitude} km`;
+        document.getElementById('iss-vel').textContent = `Velocity: ${lastKnownVelocity} km/h`;
         
         // Fetch number of passengers (crew) from Open Notify API
         const crewResponse = await fetch('https://api.open-notify.org/astros.json');
@@ -104,15 +115,17 @@ async function updateISSPosition() {
         const crewData = await crewResponse.json();
         
         const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
-        document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
+        lastKnownPassengers = issCrew;
+        document.getElementById('iss-passengers').textContent = `Passengers: ${lastKnownPassengers}`;
 
     } catch (error) {
         console.error('Error fetching ISS position or crew:', error);
-        document.getElementById('iss-lat').textContent = `Latitude: N/A`;
-        document.getElementById('iss-lon').textContent = `Longitude: N/A`;
-        document.getElementById('iss-alt').textContent = `Altitude: N/A`;
-        document.getElementById('iss-vel').textContent = `Velocity: N/A`;
-        document.getElementById('iss-passengers').textContent = `Passengers: N/A`;
+        // Use stored values if fetch fails
+        document.getElementById('iss-lat').textContent = `Latitude: ${lastKnownLatitude}`;
+        document.getElementById('iss-lon').textContent = `Longitude: ${lastKnownLongitude}`;
+        document.getElementById('iss-alt').textContent = `Altitude: ${lastKnownAltitude}`;
+        document.getElementById('iss-vel').textContent = `Velocity: ${lastKnownVelocity}`;
+        document.getElementById('iss-passengers').textContent = `Passengers: ${lastKnownPassengers}`;
     }
 }
 
@@ -197,16 +210,13 @@ function openNASAISSPage() {
 
 // Function to open a 3D local model
 function open3DModel() {
-    // Your code to open a 3D local model
-    // For example, redirect to a new page or show a modal with the 3D model
-    alert('Open 3D Model feature is not implemented yet.');
+    window.open('https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en', '_blank');
 }
 
 // Function to show the ISS path on the map
 function showISSPath() {
-    // Your code to show the ISS path
-    // For example, render the path on the globe or map
-    alert('Show ISS Path feature is not implemented yet.');
+    // Example code to show the ISS path; replace this with actual functionality
+    alert('Showing ISS Path feature is not implemented yet.');
 }
 
 // Event listeners for menu options
