@@ -1,3 +1,9 @@
+// main.js
+
+// Constants for API endpoints
+const ISS_POSITION_URL = 'https://api.wheretheiss.at/v1/satellites/25544';
+const CREW_INFO_URL = 'https://api.open-notify.org/astros.json';
+
 // Set up Scene, Camera, and Renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -73,7 +79,7 @@ function latLongToVector3(lat, lon, radius) {
 async function updateISSPosition() {
     try {
         // Fetch ISS position from the Where the ISS at? API
-        const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+        const response = await fetch(ISS_POSITION_URL);
         if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
         const data = await response.json();
 
@@ -97,7 +103,7 @@ async function updateISSPosition() {
         document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
 
         // Fetch number of passengers (crew) from Open Notify API
-        const crewResponse = await fetch('https://api.open-notify.org/astros.json');
+        const crewResponse = await fetch(CREW_INFO_URL);
         if (!crewResponse.ok) throw new Error(`Network response was not ok: ${crewResponse.statusText}`);
         const crewData = await crewResponse.json();
 
@@ -179,11 +185,11 @@ window.addEventListener('resize', () => {
 
 // Toggle the visibility of the menu
 function toggleMenu() {
-    const menu = document.getElementById('menu');
+    const menu = document.getElementById('options-menu');
     if (menu) {
         menu.classList.toggle('hidden');
     } else {
-        console.error('Element with ID "menu" not found');
+        console.error('Element with ID "options-menu" not found');
     }
 }
 
