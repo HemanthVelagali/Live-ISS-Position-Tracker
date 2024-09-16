@@ -1,3 +1,5 @@
+
+
 // Set up Scene, Camera, and Renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -70,13 +72,11 @@ function latLongToVector3(lat, lon, radius) {
 }
 
 // Function to update ISS position on the globe
-let lastCrewUpdate = 0; // Timestamp for the last crew update
-const crewUpdateInterval = 60000; // Update interval for crew data (e.g., 60 seconds)
 async function updateISSPosition() {
     try {
         // Fetch ISS position from the Where the ISS at? API
         const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
-        if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+        if (!response.ok) throw new Error('Network response was not ok.');
         const data = await response.json();
 
         const latitude = data.latitude;
@@ -95,20 +95,18 @@ async function updateISSPosition() {
         // Update ISS Coordinates Display
         document.getElementById('iss-lat').textContent = `Latitude: ${latitude.toFixed(2)}°`;
         document.getElementById('iss-lon').textContent = `Longitude: ${longitude.toFixed(2)}°`;
+
+        // Update ISS Details Display
         document.getElementById('iss-alt').textContent = `Altitude: ${altitude.toFixed(2)} km`;
         document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
-
-        // Fetch number of passengers (crew) from Open Notify API at a reasonable interval
-        const now = Date.now();
-        if (now - lastCrewUpdate >= crewUpdateInterval) {
-            lastCrewUpdate = now;
-            const crewResponse = await fetch('https://api.open-notify.org/astros.json');
-            if (!crewResponse.ok) throw new Error(`Network response was not ok: ${crewResponse.statusText}`);
-            const crewData = await crewResponse.json();
-
-            const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
-            document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
-        }
+        
+        // Fetch number of passengers (crew) from Open Notify API
+        const crewResponse = await fetch('http://api.open-notify.org/astros.json');
+        if (!crewResponse.ok) throw new Error('Network response was not ok.');
+        const crewData = await crewResponse.json();
+        
+        const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
+        document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
 
     } catch (error) {
         console.error('Error fetching ISS position or crew:', error);
@@ -150,11 +148,7 @@ function updateSunPosition() {
     const C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(M * Math.PI / 180.0) +
               (0.019993 - 0.000101 * T) * Math.sin(2 * M * Math.PI / 180.0);
     const sunLongitude = (L0 + C) % 360.0;
-
-    // Earth's obliquity of the ecliptic (tilt of the Earth's axis)
-    const obliquity = 23.439292; // in degrees
-
-    const sunDeclination = Math.asin(Math.sin(sunLongitude * Math.PI / 180.0) * Math.sin(obliquity * Math.PI / 180.0)) * 180.0 / Math.PI;
+    const sunDeclination = Math.asin(Math.sin(sunLongitude * Math.PI / 180.0) * Math.sin(23.439292 * Math.PI / 180.0)) * 180.0 / Math.PI;
 
     // Set the Sun's position
     const sunPosition = new THREE.Vector3(
@@ -180,6 +174,11 @@ setInterval(updateISSPosition, 5000); // Update every 5 seconds
 // Update the time every second
 setInterval(updateLocalTime, 1000); // Update every second
 
+// Initial updates for ISS position, Sun position, and local time
+updateISSPosition();
+updateLocalTime();
+updateSunPosition();
+
 // Handle window resizing
 window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -187,38 +186,35 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
 });
 
-// Add event listeners for menu interactions
-function addEventListeners() {
-    const moreButton = document.getElementById('more-button');
-    if (moreButton) {
-        moreButton.addEventListener('click', () => {
-            const menu = document.getElementById('menu');
-            if (menu) {
-                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-            }
-        });
-    }
-
-    const redirectMenu = document.getElementById('menu-redirect');
-    if (redirectMenu) {
-        redirectMenu.addEventListener('click', () => {
-            window.open('https://www.nasa.gov/mission_pages/station/main/index.html', '_blank');
-        });
-    }
-
-    const open3DMenu = document.getElementById('menu-open-3d');
-    if (open3DMenu) {
-        open3DMenu.addEventListener('click', () => {
-            window.open('https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en', '_blank');
-        });
-    }
-
-    const showPathMenu = document.getElementById('menu-show-path');
-    if (showPathMenu) {
-        showPathMenu.addEventListener('click', () => {
-            pathLine.visible = !pathLine.visible;
-        });
-    }
+// Toggle the visibility of the menu
+function toggleMenu() {
+    const menu = document.getElementById('menu');
+    menu.classList.toggle('hidden');
 }
 
-addEventListeners();
+// Function to open the NASA ISS page
+function openNASAISSPage() {
+    window.open('https://www.nasa.gov/mission_pages/station/main/index.html', '_blank');
+}
+
+// Function to open a 3D local model
+function open3DModel() {
+    // Your code to open a 3D local model
+    // For example, redirect to a new page or show a modal with the 3D model
+    alert('Open 3D Model feature is not implemented yet.');
+}
+
+// Function to show the ISS path on the map
+function showISSPath() {
+    // Your code to show the ISS path
+    // For example, render the path on the globe or map
+    alert('Show ISS Path feature is not implemented yet.');
+}
+
+// Event listeners for menu options
+document.getElementById('menu-redirect').addEventListener('click', openNASAISSPage);
+document.getElementById('menu-open-3d').addEventListener('click', open3DModel);
+document.getElementById('menu-show-path').addEventListener('click', showISSPath);
+
+// Event listener for the "More" button
+document.getElementById('more-button').addEventListener('click', toggleMenu);
