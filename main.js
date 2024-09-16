@@ -1,143 +1,218 @@
-// Initialize variables
-let scene, camera, renderer, controls;
-let issDot, issPathLine;
-let issCoordinates = { lat: 0, lon: 0, alt: 0, vel: 0, passengers: 9 };
-let lastUpdate = Date.now();
-const updateInterval = 15000; // Update ISS data every 15 seconds
-const sunUpdateInterval = 3600000; // Update Sun position every hour
+// Set up Scene, Camera, and Renderer
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+);
+camera.position.z = 350;
 
-// Initialize the scene
-function init() {
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.getElementById('globe-container').appendChild(renderer.domElement);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.getElementById('globe-container').appendChild(renderer.domElement);
 
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.25;
+// Load the space background texture
+const spaceTextureLoader = new THREE.TextureLoader();
+const spaceTexture = spaceTextureLoader.load('assets/background.jpg', undefined, undefined, (error) => {
+    console.error('Error loading space background:', error);
+});
+scene.background = spaceTexture;
 
-    camera.position.z = 5;
+// Create Geometry, Material, and Mesh for the Globe
+const earthRadius = 200; // Define a constant radius for Earth
 
-    // Create the ISS dot and path line
-    const geometry = new THREE.SphereGeometry(0.1, 32, 32);
-    const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    issDot = new THREE.Mesh(geometry, material);
-    scene.add(issDot);
+const globeGeometry = new THREE.SphereGeometry(earthRadius, 64, 64); // High-res sphere for Earth
+const earthTexture = new THREE.TextureLoader().load('assets/earth.jpg', undefined, undefined, (error) => {
+    console.error('Error loading Earth texture:', error);
+});
+const globeMaterial = new THREE.MeshPhongMaterial({ map: earthTexture });
+const globe = new THREE.Mesh(globeGeometry, globeMaterial);
+scene.add(globe);
 
-    // Create and add ISS path line (dummy line for now)
-    const pathGeometry = new THREE.BufferGeometry().setFromPoints([]);
-    const pathMaterial = new THREE.LineBasicMaterial({ color: 0xff00ff });
-    issPathLine = new THREE.Line(pathGeometry, pathMaterial);
-    scene.add(issPathLine);
+// Add lights
+const sunlight = new THREE.DirectionalLight(0xffffff, 1.0);
+scene.add(sunlight);
 
-    // Load textures and create the globe
-    loadTextures();
+const ambientLight = new THREE.AmbientLight(0x333333);
+scene.add(ambientLight);
+
+// Add OrbitControls to allow interaction with the globe (rotation only by user)
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.minDistance = 200;
+controls.maxDistance = 600;
+
+// ISS Dot/Marker on the globe
+const issGeometry = new THREE.SphereGeometry(2, 16, 16); // Small sphere for the ISS marker
+const issMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red color for the ISS marker
+const issMarker = new THREE.Mesh(issGeometry, issMaterial);
+scene.add(issMarker);
+
+// Path line geometry and material
+const pathPoints = [];
+const pathGeometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
+const pathMaterial = new THREE.LineBasicMaterial({ color: 0xff00ff, opacity: 0.8 });
+const pathLine = new THREE.Line(pathGeometry, pathMaterial);
+scene.add(pathLine);
+
+// Convert latitude/longitude to 3D position on the globe
+function latLongToVector3(lat, lon, radius) {
+    const phi = (90 - lat) * (Math.PI / 180); // Convert latitude to polar angle (phi)
+    const theta = (lon + 180) * (Math.PI / 180); // Convert longitude to azimuthal angle (theta)
+
+    const x = -radius * Math.sin(phi) * Math.cos(theta); // Calculate 3D x coordinate
+    const y = radius * Math.cos(phi); // Calculate 3D y coordinate
+    const z = radius * Math.sin(phi) * Math.sin(theta); // Calculate 3D z coordinate
+
+    return new THREE.Vector3(x, y, z); // Return the 3D position as a vector
 }
 
-// Load textures
-function loadTextures() {
-    const textureLoader = new THREE.TextureLoader();
-    const earthTexture = textureLoader.load('assets/earth.jpg', () => {
-        const earthGeometry = new THREE.SphereGeometry(2, 64, 64);
-        const earthMaterial = new THREE.MeshPhongMaterial({ map: earthTexture });
-        const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
-        scene.add(earthMesh);
+// Function to update ISS position on the globe
+async function updateISSPosition() {
+    try {
+        // Fetch ISS position from the Where the ISS at? API
+        const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+        if (!response.ok) throw new Error('Network response was not ok.');
+        const data = await response.json();
 
-        const ambientLight = new THREE.AmbientLight(0x333333);
-        scene.add(ambientLight);
+        const latitude = data.latitude;
+        const longitude = data.longitude;
+        const altitude = data.altitude; // in kilometers
+        const velocity = data.velocity; // in km/h
 
-        const sunlight = new THREE.DirectionalLight(0xffffff, 1.0);
-        sunlight.position.set(5, 5, 5).normalize();
-        scene.add(sunlight);
-    }, undefined, (error) => {
-        console.error('Error loading Earth texture:', error);
-    });
+        // Convert lat/lon to 3D position on the globe
+        const issPosition = latLongToVector3(latitude, longitude, earthRadius);
+        issMarker.position.copy(issPosition); // Update ISS marker position on the globe
+
+        // Add the new position to the path
+        pathPoints.push(issPosition);
+        pathGeometry.setFromPoints(pathPoints);
+
+        // Update ISS Coordinates Display
+        document.getElementById('iss-lat').textContent = `Latitude: ${latitude.toFixed(2)}°`;
+        document.getElementById('iss-lon').textContent = `Longitude: ${longitude.toFixed(2)}°`;
+
+        // Update ISS Details Display
+        document.getElementById('iss-alt').textContent = `Altitude: ${altitude.toFixed(2)} km`;
+        document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
+        
+        // Fetch number of passengers (crew) from Open Notify API
+        const crewResponse = await fetch('http://api.open-notify.org/astros.json');
+        if (!crewResponse.ok) throw new Error('Network response was not ok.');
+        const crewData = await crewResponse.json();
+        
+        const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
+        document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
+
+    } catch (error) {
+        console.error('Error fetching ISS position or crew:', error);
+        document.getElementById('iss-lat').textContent = `Latitude: N/A`;
+        document.getElementById('iss-lon').textContent = `Longitude: N/A`;
+        document.getElementById('iss-alt').textContent = `Altitude: N/A`;
+        document.getElementById('iss-vel').textContent = `Velocity: N/A`;
+        document.getElementById('iss-passengers').textContent = `Passengers: N/A`;
+    }
 }
 
-// Animate the scene
+// Function to update the user's local time
+function updateLocalTime() {
+    try {
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone; // Get user's timezone
+        const now = new Date().toLocaleString('en-US', { timeZone: userTimezone });
+        const formattedTime = new Date(now).toLocaleTimeString('en-US', { hour12: false });
+        document.getElementById('digital-clock').textContent = `Local Time (${userTimezone}): ${formattedTime}`;
+    } catch (error) {
+        console.error('Error fetching local time:', error);
+        document.getElementById('digital-clock').textContent = `Local Time: N/A`;
+    }
+}
+
+// Function to update the Sun's position
+function updateSunPosition() {
+    const now = new Date();
+    const lat = 0; // Change as needed for user location
+    const lon = 0; // Change as needed for user location
+    const date = new Date();
+
+    // Calculate Julian Date
+    const jd = (now.getTime() / 86400000) + 2440587.5;
+
+    // Calculate the Sun's position
+    const T = (jd - 2451545.0) / 36525.0;
+    const L0 = (280.46646 + 36000.76983 * T + 0.0003032 * T * T) % 360.0;
+    const M = (357.52911 + 35999.05029 * T - 0.0001537 * T * T) % 360.0;
+    const C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(M * Math.PI / 180.0) +
+              (0.019993 - 0.000101 * T) * Math.sin(2 * M * Math.PI / 180.0);
+    const sunLongitude = (L0 + C) % 360.0;
+    const sunDeclination = Math.asin(Math.sin(sunLongitude * Math.PI / 180.0) * Math.sin(23.439292 * Math.PI / 180.0)) * 180.0 / Math.PI;
+
+    // Set the Sun's position
+    const sunPosition = new THREE.Vector3(
+        earthRadius * Math.cos(sunDeclination * Math.PI / 180),
+        earthRadius * Math.sin(sunDeclination * Math.PI / 180),
+        0
+    );
+    sunlight.position.copy(sunPosition);
+}
+
+// Animation loop
 function animate() {
     requestAnimationFrame(animate);
     controls.update(); // Update controls
+    updateSunPosition(); // Update Sun position
     renderer.render(scene, camera);
 }
-
-// Update ISS position
-function updateISSPosition(lat, lon) {
-    // Convert latitude and longitude to 3D coordinates
-    const radius = 2; // Adjust based on globe scale
-    const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (lon + 180) * (Math.PI / 180);
-
-    issDot.position.x = radius * Math.sin(phi) * Math.cos(theta);
-    issDot.position.y = radius * Math.cos(phi);
-    issDot.position.z = radius * Math.sin(phi) * Math.sin(theta);
-
-    // Update ISS coordinates display
-    document.getElementById('iss-lat').innerText = `Latitude: ${lat.toFixed(2)}`;
-    document.getElementById('iss-lon').innerText = `Longitude: ${lon.toFixed(2)}`;
-}
-
-// Fetch ISS data from API
-async function fetchISSData() {
-    try {
-        const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
-        if (response.ok) {
-            const data = await response.json();
-            const currentTime = Date.now();
-
-            // Update ISS data only if the interval has passed
-            if (currentTime - lastUpdate >= updateInterval) {
-                lastUpdate = currentTime;
-                issCoordinates.lat = data.latitude;
-                issCoordinates.lon = data.longitude;
-                issCoordinates.alt = data.altitude;
-                issCoordinates.vel = data.velocity;
-                
-                updateISSPosition(issCoordinates.lat, issCoordinates.lon);
-
-                // Update other ISS details
-                document.getElementById('iss-alt').innerText = `Altitude: ${issCoordinates.alt.toFixed(2)} km`;
-                document.getElementById('iss-vel').innerText = `Velocity: ${issCoordinates.vel.toFixed(2)} km/h`;
-                document.getElementById('iss-passengers').innerText = `Passengers: ${issCoordinates.passengers}`;
-            }
-        } else {
-            console.error('Failed to fetch ISS data');
-        }
-    } catch (error) {
-        console.error('Error fetching ISS data:', error);
-    }
-
-    // Schedule the next update
-    setTimeout(fetchISSData, updateInterval);
-}
-
-// Update local time with time zone
-function updateLocalTime() {
-    const now = new Date();
-    const options = {
-        timeZoneName: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-    };
-    const localTimeString = now.toLocaleTimeString('en-US', options);
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    document.getElementById('digital-clock').innerText = `Local Time (${timeZone}): ${localTimeString}`;
-}
-
-// Update Sun position (mock function)
-function updateSunPosition() {
-    // Placeholder for Sun position update logic
-    console.log('Updating Sun position...');
-}
-
-// Initialize the application
-init();
-setInterval(updateLocalTime, 1000); // Update local time every second
-setInterval(updateSunPosition, sunUpdateInterval); // Update Sun position every hour
-
-// Start the data fetch and animation
-fetchISSData();
 animate();
+
+// Update the ISS position every 5 seconds
+setInterval(updateISSPosition, 5000); // Update every 5 seconds
+
+// Update the time every second
+setInterval(updateLocalTime, 1000); // Update every second
+
+// Initial updates for ISS position, Sun position, and local time
+updateISSPosition();
+updateLocalTime();
+updateSunPosition();
+
+// Handle window resizing
+window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+});
+
+// Toggle the visibility of the menu
+function toggleMenu() {
+    const menu = document.getElementById('menu');
+    menu.classList.toggle('hidden');
+}
+
+// Function to open the NASA ISS page
+function openNASAISSPage() {
+    window.open('https://www.nasa.gov/mission_pages/station/main/index.html', '_blank');
+}
+
+// Function to open a 3D local model
+function open3DModel() {
+    // Your code to open a 3D local model
+    // For example, redirect to a new page or show a modal with the 3D model
+    window.open('https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en', '_blank');
+}
+
+// Function to show the ISS path on the map
+function showISSPath() {
+    // Your code to show the ISS path
+    // For example, render the path on the globe or map
+    alert('Show ISS Path feature is not implemented yet.');
+}
+
+// Event listeners for menu options
+document.getElementById('menu-redirect').addEventListener('click', openNASAISSPage);
+document.getElementById('menu-open-3d').addEventListener('click', open3DModel);
+document.getElementById('menu-show-path').addEventListener('click', showISSPath);
+
+// Event listener for the "More" button
+document.getElementById('more-button').addEventListener('click', toggleMenu);
