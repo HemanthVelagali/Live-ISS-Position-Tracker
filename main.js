@@ -97,22 +97,18 @@ async function updateISSPosition() {
         // Update ISS Details Display
         document.getElementById('iss-alt').textContent = `Altitude: ${altitude.toFixed(2)} km`;
         document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
-        
-        // Fetch number of passengers (crew) from Open Notify API
-        const crewResponse = await fetch('http://api.open-notify.org/astros.json');
-        if (!crewResponse.ok) throw new Error('Network response was not ok.');
-        const crewData = await crewResponse.json();
-        
-        const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
-        document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
 
+        // Static ISS Crew Count
+        const issCrew = 9;
+        document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
+        
     } catch (error) {
-        console.error('Error fetching ISS position or crew:', error);
+        console.error('Error fetching ISS position or details:', error);
         document.getElementById('iss-lat').textContent = `Latitude: N/A`;
         document.getElementById('iss-lon').textContent = `Longitude: N/A`;
         document.getElementById('iss-alt').textContent = `Altitude: N/A`;
         document.getElementById('iss-vel').textContent = `Velocity: N/A`;
-        document.getElementById('iss-passengers').textContent = `Passengers: N/A`;
+        document.getElementById('iss-passengers').textContent = `Passengers: 9`; // Always show 9 if error
     }
 }
 
@@ -166,8 +162,8 @@ function animate() {
 }
 animate();
 
-// Update the ISS position every 5 seconds
-setInterval(updateISSPosition, 5000); // Update every 5 seconds
+// Update the ISS position every 15 seconds
+setInterval(updateISSPosition, 15000); // Update every 15 seconds
 
 // Update the time every second
 setInterval(updateLocalTime, 1000); // Update every second
@@ -184,35 +180,8 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
 });
 
-// Toggle the visibility of the menu
-function toggleMenu() {
-    const menu = document.getElementById('menu');
-    menu.classList.toggle('hidden');
-}
-
-// Function to open the NASA ISS page
-function openNASAISSPage() {
-    window.open('https://www.nasa.gov/mission_pages/station/main/index.html', '_blank');
-}
-
-// Function to open a 3D local model
-function open3DModel() {
-    // Your code to open a 3D local model
-    // For example, redirect to a new page or show a modal with the 3D model
-    window.open('https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en', '_blank');
-}
-
-// Function to show the ISS path on the map
-function showISSPath() {
-    // Your code to show the ISS path
-    // For example, render the path on the globe or map
-    alert('Show ISS Path feature is not implemented yet.');
-}
-
-// Event listeners for menu options
-document.getElementById('menu-redirect').addEventListener('click', openNASAISSPage);
-document.getElementById('menu-open-3d').addEventListener('click', open3DModel);
-document.getElementById('menu-show-path').addEventListener('click', showISSPath);
-
-// Event listener for the "More" button
-document.getElementById('more-button').addEventListener('click', toggleMenu);
+// Toggle the visibility of the More Options menu
+document.getElementById('more-button').addEventListener('click', () => {
+    const optionsMenu = document.getElementById('options-menu');
+    optionsMenu.style.display = optionsMenu.style.display === 'none' ? 'block' : 'none';
+});
