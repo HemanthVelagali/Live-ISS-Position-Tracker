@@ -150,39 +150,27 @@ function updateSunPosition() {
     const jd = (now.getTime() / 86400000) + 2440587.5;
 
     // Calculate the Sun's position
-    const T = (jd - 2451545.0) / 36525.0;
-    const L0 = (280.46646 + 36000.76983 * T + 0.0003032 * T * T) % 360.0;
-    const M = (357.52911 + 35999.05029 * T - 0.0001537 * T * T) % 360.0;
-    const C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(M * Math.PI / 180.0) +
-              (0.019993 - 0.000101 * T) * Math.sin(2 * M * Math.PI / 180.0);
-    const sunLongitude = (L0 + C) % 360.0;
-    const sunDeclination = Math.asin(Math.sin(sunLongitude * Math.PI / 180.0) * Math.sin(23.439292 * Math.PI / 180.0)) * 180.0 / Math.PI;
+    const T = (jd - 2451545.0) / 36525;
+    const L0 = 280.46646 + (36000.76983 * T) + (0.0003032 * T * T);
+    const M = 357.52911 + (35999.05029 * T) - (0.0001537 * T * T);
+    const e = 0.016708634 - (0.000042037 * T) - (0.0000001267 * T * T);
+    const C = ((1.914602 - (0.004817 * T) - (0.000014 * T * T)) * Math.sin((Math.PI / 180) * M)) + ((0.019993 - (0.000101 * T)) * Math.sin((Math.PI / 180) * 2 * M)) + 0.000289 * Math.sin((Math.PI / 180) * 3 * M);
+    const trueLong = L0 + C;
+    const trueAnomaly = M + C;
 
-    // Set the Sun's position
-    const sunPosition = new THREE.Vector3(
-        earthRadius * Math.cos(sunDeclination * Math.PI / 180),
-        earthRadius * Math.sin(sunDeclination * Math.PI / 180),
-        0
-    );
-    sunlight.position.copy(sunPosition);
+    // Sun's right ascension and declination
+    const RA = Math.atan2(Math.cos((Math.PI / 180) * obliquity) * Math.sin((Math.PI / 180) * trueLong), Math.cos((Math.PI / 180) * trueLong));
+    const decl = Math.asin(Math.sin((Math.PI / 180) * obliquity) * Math.sin((Math.PI / 180) * trueLong));
+
+    // Update the sun position
+    const sunPosition = latLongToVector3(decl * (180 / Math.PI), RA * (180 / Math.PI), earthRadius);
+    scene.add(new THREE.PointLight(0xffffff, 1, 1000).position.copy(sunPosition));
+
+    // Adjust lighting direction
+    sunlight.position.copy(sunPosition).normalize();
 }
 
-// Animation loop
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update(); // Update controls
-    updateSunPosition(); // Update Sun position
-    renderer.render(scene, camera);
-}
-animate();
-
-// Update the ISS position every 5 seconds
-setInterval(updateISSPosition, 5000); // Update every 5 seconds
-
-// Update the time every second
-setInterval(updateLocalTime, 1000); // Update every second
-
-// Handle window resizing
+// Handle window resize
 window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
