@@ -93,16 +93,14 @@ async function updateISSPosition() {
         // Update ISS Coordinates Display
         document.getElementById('iss-lat').textContent = `Latitude: ${latitude.toFixed(2)}°`;
         document.getElementById('iss-lon').textContent = `Longitude: ${longitude.toFixed(2)}°`;
-
-        // Update ISS Details Display
         document.getElementById('iss-alt').textContent = `Altitude: ${altitude.toFixed(2)} km`;
         document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
-        
+
         // Fetch number of passengers (crew) from Open Notify API
         const crewResponse = await fetch('https://api.open-notify.org/astros.json');
         if (!crewResponse.ok) throw new Error(`Network response was not ok: ${crewResponse.statusText}`);
         const crewData = await crewResponse.json();
-        
+
         const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
         document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
 
@@ -172,11 +170,6 @@ setInterval(updateISSPosition, 5000); // Update every 5 seconds
 // Update the time every second
 setInterval(updateLocalTime, 1000); // Update every second
 
-// Initial updates for ISS position, Sun position, and local time
-updateISSPosition();
-updateLocalTime();
-updateSunPosition();
-
 // Handle window resizing
 window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -187,7 +180,11 @@ window.addEventListener('resize', () => {
 // Toggle the visibility of the menu
 function toggleMenu() {
     const menu = document.getElementById('menu');
-    menu.classList.toggle('hidden');
+    if (menu) {
+        menu.classList.toggle('hidden');
+    } else {
+        console.error('Element with ID "menu" not found');
+    }
 }
 
 // Function to open the NASA ISS page
@@ -195,24 +192,52 @@ function openNASAISSPage() {
     window.open('https://www.nasa.gov/mission_pages/station/main/index.html', '_blank');
 }
 
-// Function to open a 3D local model
+// Function to open a 3D model of the ISS
 function open3DModel() {
-    // Your code to open a 3D local model
-    // For example, redirect to a new page or show a modal with the 3D model
-    alert('Open 3D Model feature is not implemented yet.');
+    window.open('https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en', '_blank');
 }
 
 // Function to show the ISS path on the map
 function showISSPath() {
-    // Your code to show the ISS path
-    // For example, render the path on the globe or map
-    alert('Show ISS Path feature is not implemented yet.');
+    pathLine.visible = !pathLine.visible;
 }
 
-// Event listeners for menu options
-document.getElementById('menu-redirect').addEventListener('click', openNASAISSPage);
-document.getElementById('menu-open-3d').addEventListener('click', open3DModel);
-document.getElementById('menu-show-path').addEventListener('click', showISSPath);
+// Add event listeners
+function addEventListeners() {
+    const moreButton = document.getElementById('more-button');
+    const menuRedirect = document.getElementById('menu-redirect');
+    const menuOpen3D = document.getElementById('menu-open-3d');
+    const menuShowPath = document.getElementById('menu-show-path');
 
-// Event listener for the "More" button
-document.getElementById('more-button').addEventListener('click', toggleMenu);
+    if (moreButton) {
+        moreButton.addEventListener('click', toggleMenu);
+    } else {
+        console.error('Element with ID "more-button" not found');
+    }
+
+    if (menuRedirect) {
+        menuRedirect.addEventListener('click', openNASAISSPage);
+    } else {
+        console.error('Element with ID "menu-redirect" not found');
+    }
+
+    if (menuOpen3D) {
+        menuOpen3D.addEventListener('click', open3DModel);
+    } else {
+        console.error('Element with ID "menu-open-3d" not found');
+    }
+
+    if (menuShowPath) {
+        menuShowPath.addEventListener('click', showISSPath);
+    } else {
+        console.error('Element with ID "menu-show-path" not found');
+    }
+}
+
+// Initialize event listeners
+addEventListeners();
+
+// Initial updates for ISS position, Sun position, and local time
+updateISSPosition();
+updateLocalTime();
+updateSunPosition();
