@@ -23,7 +23,6 @@ body, html {
     color: #fff; /* White text color */
     padding: 10px; /* Padding around content */
     border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); /* Optional shadow for better visibility */
 }
 
 /* Position and size for top-right info box */
@@ -102,14 +101,13 @@ button:hover {
 /* Styling for options menu */
 #options-menu {
     position: absolute;
-    bottom: 70px; /* Position above the button */
-    right: 20px; /* Align to right edge with some spacing */
+    bottom: 60px; /* Position above the button */
+    right: 0;
     background-color: rgba(0, 0, 0, 0.6); /* Slightly transparent background */
     padding: 15px; /* Padding around menu content */
     border-radius: 8px; /* Rounded corners */
     width: 220px; /* Fixed width for menu */
     display: none; /* Hide by default */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); /* Optional shadow for better visibility */
 }
 
 /* Remove default list styles for menu */
@@ -121,14 +119,14 @@ button:hover {
 
 /* Styling for list items in the menu */
 #options-menu ul li {
-    margin: 10px 0; /* Margin between menu options */
+    margin: 15px 0; /* Margin between menu options */
 }
 
 /* Styling for links in the menu */
 #options-menu ul li a {
     color: #fff; /* White text color */
     text-decoration: none; /* Remove underline from links */
-    font-size: 16px; /* Font size for links */
+    font-size: 18px; /* Font size for links */
 }
 
 /* Hover effect for links in the menu */
