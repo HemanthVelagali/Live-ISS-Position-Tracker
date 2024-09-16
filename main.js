@@ -1,5 +1,3 @@
-
-
 // Set up Scene, Camera, and Renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -99,22 +97,17 @@ async function updateISSPosition() {
         // Update ISS Details Display
         document.getElementById('iss-alt').textContent = `Altitude: ${altitude.toFixed(2)} km`;
         document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
-        
-        // Fetch number of passengers (crew) from Open Notify API
-        const crewResponse = await fetch('http://api.open-notify.org/astros.json');
-        if (!crewResponse.ok) throw new Error('Network response was not ok.');
-        const crewData = await crewResponse.json();
-        
-        const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
-        document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
+
+        // Set fixed number of passengers
+        document.getElementById('iss-passengers').textContent = `Passengers: 9`;
 
     } catch (error) {
-        console.error('Error fetching ISS position or crew:', error);
+        console.error('Error fetching ISS position:', error);
         document.getElementById('iss-lat').textContent = `Latitude: N/A`;
         document.getElementById('iss-lon').textContent = `Longitude: N/A`;
         document.getElementById('iss-alt').textContent = `Altitude: N/A`;
         document.getElementById('iss-vel').textContent = `Velocity: N/A`;
-        document.getElementById('iss-passengers').textContent = `Passengers: N/A`;
+        document.getElementById('iss-passengers').textContent = `Passengers: 9`;
     }
 }
 
@@ -136,7 +129,6 @@ function updateSunPosition() {
     const now = new Date();
     const lat = 0; // Change as needed for user location
     const lon = 0; // Change as needed for user location
-    const date = new Date();
 
     // Calculate Julian Date
     const jd = (now.getTime() / 86400000) + 2440587.5;
@@ -150,10 +142,11 @@ function updateSunPosition() {
     const sunLongitude = (L0 + C) % 360.0;
     const sunDeclination = Math.asin(Math.sin(sunLongitude * Math.PI / 180.0) * Math.sin(23.439292 * Math.PI / 180.0)) * 180.0 / Math.PI;
 
-    // Set the Sun's position
+    // Convert to 3D position
+    const sunRadius = 500; // Adjust radius as needed for the scene
     const sunPosition = new THREE.Vector3(
-        earthRadius * Math.cos(sunDeclination * Math.PI / 180),
-        earthRadius * Math.sin(sunDeclination * Math.PI / 180),
+        sunRadius * Math.cos(sunDeclination * Math.PI / 180),
+        sunRadius * Math.sin(sunDeclination * Math.PI / 180),
         0
     );
     sunlight.position.copy(sunPosition);
@@ -199,9 +192,7 @@ function openNASAISSPage() {
 
 // Function to open a 3D local model
 function open3DModel() {
-    // Your code to open a 3D local model
-    // For example, redirect to a new page or show a modal with the 3D model
-    alert('Open 3D Model feature is not implemented yet.');
+    window.open('https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en', '_blank');
 }
 
 // Function to show the ISS path on the map
