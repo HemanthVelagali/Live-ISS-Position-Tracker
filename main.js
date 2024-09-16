@@ -1,5 +1,3 @@
-
-
 // Set up Scene, Camera, and Renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -101,7 +99,7 @@ async function updateISSPosition() {
         document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
         
         // Fetch number of passengers (crew) from Open Notify API
-        const crewResponse = await fetch('http://api.open-notify.org/astros.json');
+        const crewResponse = await fetch('https://api.open-notify.org/astros.json');
         if (!crewResponse.ok) throw new Error('Network response was not ok.');
         const crewData = await crewResponse.json();
         
