@@ -1,9 +1,3 @@
-// main.js
-
-// Constants for API endpoints
-const ISS_POSITION_URL = 'https://api.wheretheiss.at/v1/satellites/25544';
-const CREW_INFO_URL = 'https://api.open-notify.org/astros.json';
-
 // Set up Scene, Camera, and Renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -79,8 +73,8 @@ function latLongToVector3(lat, lon, radius) {
 async function updateISSPosition() {
     try {
         // Fetch ISS position from the Where the ISS at? API
-        const response = await fetch(ISS_POSITION_URL);
-        if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+        const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+        if (!response.ok) throw new Error('Network response was not ok.');
         const data = await response.json();
 
         const latitude = data.latitude;
@@ -99,14 +93,16 @@ async function updateISSPosition() {
         // Update ISS Coordinates Display
         document.getElementById('iss-lat').textContent = `Latitude: ${latitude.toFixed(2)}°`;
         document.getElementById('iss-lon').textContent = `Longitude: ${longitude.toFixed(2)}°`;
+
+        // Update ISS Details Display
         document.getElementById('iss-alt').textContent = `Altitude: ${altitude.toFixed(2)} km`;
         document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
-
+        
         // Fetch number of passengers (crew) from Open Notify API
-        const crewResponse = await fetch(CREW_INFO_URL);
-        if (!crewResponse.ok) throw new Error(`Network response was not ok: ${crewResponse.statusText}`);
+        const crewResponse = await fetch('https://api.open-notify.org/astros.json');
+        if (!crewResponse.ok) throw new Error('Network response was not ok.');
         const crewData = await crewResponse.json();
-
+        
         const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
         document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
 
@@ -176,6 +172,11 @@ setInterval(updateISSPosition, 5000); // Update every 5 seconds
 // Update the time every second
 setInterval(updateLocalTime, 1000); // Update every second
 
+// Initial updates for ISS position, Sun position, and local time
+updateISSPosition();
+updateLocalTime();
+updateSunPosition();
+
 // Handle window resizing
 window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -185,12 +186,8 @@ window.addEventListener('resize', () => {
 
 // Toggle the visibility of the menu
 function toggleMenu() {
-    const menu = document.getElementById('options-menu');
-    if (menu) {
-        menu.classList.toggle('hidden');
-    } else {
-        console.error('Element with ID "options-menu" not found');
-    }
+    const menu = document.getElementById('menu');
+    menu.classList.toggle('hidden');
 }
 
 // Function to open the NASA ISS page
@@ -198,52 +195,24 @@ function openNASAISSPage() {
     window.open('https://www.nasa.gov/mission_pages/station/main/index.html', '_blank');
 }
 
-// Function to open a 3D model of the ISS
+// Function to open a 3D local model
 function open3DModel() {
-    window.open('https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en', '_blank');
+    // Your code to open a 3D local model
+    // For example, redirect to a new page or show a modal with the 3D model
+    alert('Open 3D Model feature is not implemented yet.');
 }
 
 // Function to show the ISS path on the map
 function showISSPath() {
-    pathLine.visible = !pathLine.visible;
+    // Your code to show the ISS path
+    // For example, render the path on the globe or map
+    alert('Show ISS Path feature is not implemented yet.');
 }
 
-// Add event listeners
-function addEventListeners() {
-    const moreButton = document.getElementById('more-button');
-    const menuRedirect = document.getElementById('menu-redirect');
-    const menuOpen3D = document.getElementById('menu-open-3d');
-    const menuShowPath = document.getElementById('menu-show-path');
+// Event listeners for menu options
+document.getElementById('menu-redirect').addEventListener('click', openNASAISSPage);
+document.getElementById('menu-open-3d').addEventListener('click', open3DModel);
+document.getElementById('menu-show-path').addEventListener('click', showISSPath);
 
-    if (moreButton) {
-        moreButton.addEventListener('click', toggleMenu);
-    } else {
-        console.error('Element with ID "more-button" not found');
-    }
-
-    if (menuRedirect) {
-        menuRedirect.addEventListener('click', openNASAISSPage);
-    } else {
-        console.error('Element with ID "menu-redirect" not found');
-    }
-
-    if (menuOpen3D) {
-        menuOpen3D.addEventListener('click', open3DModel);
-    } else {
-        console.error('Element with ID "menu-open-3d" not found');
-    }
-
-    if (menuShowPath) {
-        menuShowPath.addEventListener('click', showISSPath);
-    } else {
-        console.error('Element with ID "menu-show-path" not found');
-    }
-}
-
-// Initialize event listeners
-addEventListeners();
-
-// Initial updates for ISS position, Sun position, and local time
-updateISSPosition();
-updateLocalTime();
-updateSunPosition();
+// Event listener for the "More" button
+document.getElementById('more-button').addEventListener('click', toggleMenu);
