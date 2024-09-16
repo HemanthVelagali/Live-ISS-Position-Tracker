@@ -24,27 +24,25 @@ body, html {
     padding: 10px; /* Padding around content */
     border-radius: 8px; /* Rounded corners */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); /* Optional shadow for better visibility */
+    width: 200px; /* Default width */
 }
 
 /* Position and size for top-right info box */
 .top-right {
     top: 20px;
     right: 20px;
-    width: 200px; /* Fixed width */
 }
 
 /* Position and size for top-left info box */
 .top-left {
     top: 20px;
     left: 20px;
-    width: 200px; /* Fixed width */
 }
 
 /* Position and size for bottom-left info box */
 .bottom-left {
     bottom: 20px;
     left: 20px;
-    width: 200px; /* Fixed width */
 }
 
 /* Position and size for bottom-right info box */
@@ -134,4 +132,42 @@ button:hover {
 /* Hover effect for links in the menu */
 #options-menu ul li a:hover {
     text-decoration: underline; /* Underline on hover */
+}
+
+/* Media queries for mobile responsiveness */
+@media (max-width: 768px) {
+    /* Adjust info-box width for smaller screens */
+    .info-box {
+        width: 150px; /* Smaller width for mobile */
+        font-size: 12px; /* Smaller font size for better fit */
+        padding: 8px; /* Less padding */
+    }
+
+    /* Adjust button size for mobile */
+    #more-options {
+        width: 40px; /* Smaller width for mobile */
+        height: 40px; /* Smaller height for mobile */
+    }
+
+    /* Adjust font size for button text */
+    button {
+        font-size: 20px; /* Smaller font size for button */
+        line-height: 40px; /* Adjust line height */
+    }
+
+    /* Adjust options menu for mobile */
+    #options-menu {
+        width: 180px; /* Smaller width for mobile */
+        bottom: 60px; /* Adjust position */
+    }
+
+    /* Hide top info boxes on very small screens to prevent overlap */
+    .top-left, .top-right {
+        display: none;
+    }
+
+    /* Adjust bottom info boxes to fit better */
+    .bottom-left, .bottom-right {
+        width: 150px; /* Smaller width for mobile */
+    }
 }
