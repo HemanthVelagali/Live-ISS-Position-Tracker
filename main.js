@@ -72,7 +72,7 @@ function latLongToVector3(lat, lon, radius) {
 // Function to update ISS position on the globe
 async function updateISSPosition() {
     try {
-        // Fetch ISS position from the Where the ISS at? API
+        // Fetch ISS position from the Where the ISS at? API (note the HTTPS)
         const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
         if (!response.ok) throw new Error('Network response was not ok.');
         const data = await response.json();
@@ -86,10 +86,6 @@ async function updateISSPosition() {
         const issPosition = latLongToVector3(latitude, longitude, earthRadius);
         issMarker.position.copy(issPosition); // Update ISS marker position on the globe
 
-        // Add the new position to the path
-        pathPoints.push(issPosition);
-        pathGeometry.setFromPoints(pathPoints);
-
         // Update ISS Coordinates Display
         document.getElementById('iss-lat').textContent = `Latitude: ${latitude.toFixed(2)}°`;
         document.getElementById('iss-lon').textContent = `Longitude: ${longitude.toFixed(2)}°`;
@@ -98,17 +94,21 @@ async function updateISSPosition() {
         document.getElementById('iss-alt').textContent = `Altitude: ${altitude.toFixed(2)} km`;
         document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
 
-        // Static ISS Crew Count
-        const issCrew = 9;
-        document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
+        // Fetch crew data with HTTPS
+        const crewResponse = await fetch('https://api.open-notify.org/astros.json'); // Updated to HTTPS
+        if (!crewResponse.ok) throw new Error('Crew response was not ok.');
+        const crewData = await crewResponse.json();
+        const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
+
+        document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew || 9}`;
         
     } catch (error) {
-        console.error('Error fetching ISS position or details:', error);
+        console.error('Error fetching ISS position or crew:', error);
         document.getElementById('iss-lat').textContent = `Latitude: N/A`;
         document.getElementById('iss-lon').textContent = `Longitude: N/A`;
         document.getElementById('iss-alt').textContent = `Altitude: N/A`;
         document.getElementById('iss-vel').textContent = `Velocity: N/A`;
-        document.getElementById('iss-passengers').textContent = `Passengers: 9`; // Always show 9 if error
+        document.getElementById('iss-passengers').textContent = `Passengers: 9`; // Default to 9 if error
     }
 }
 
@@ -162,8 +162,8 @@ function animate() {
 }
 animate();
 
-// Update the ISS position every 15 seconds
-setInterval(updateISSPosition, 15000); // Update every 15 seconds
+// Update the ISS position every 5 seconds
+setInterval(updateISSPosition, 5000); // Update every 5 seconds
 
 // Update the time every second
 setInterval(updateLocalTime, 1000); // Update every second
@@ -180,8 +180,23 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
 });
 
-// Toggle the visibility of the More Options menu
-document.getElementById('more-button').addEventListener('click', () => {
-    const optionsMenu = document.getElementById('options-menu');
-    optionsMenu.style.display = optionsMenu.style.display === 'none' ? 'block' : 'none';
-});
+// Toggle the visibility of the menu
+function toggleMenu() {
+    const menu = document.getElementById('menu');
+    menu.classList.toggle('hidden');
+}
+
+// Function to open the NASA ISS page
+function openNASAISSPage() {
+    window.open('https://www.nasa.gov/mission_pages/station/main/index.html', '_blank');
+}
+
+// Function to open a 3D local model of the ISS
+function openISS3DModel() {
+    window.open('https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en', '_blank');
+}
+
+// Function to show the ISS path on the map
+function showISSPath() {
+    alert('ISS path will be displayed on the map (feature to be implemented).');
+}
