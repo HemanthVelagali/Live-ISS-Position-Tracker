@@ -112,86 +112,53 @@ async function updateISSPosition() {
     }
 }
 
-// Function to update the user's local time
-function updateLocalTime() {
-    try {
-        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone; // Get user's timezone
-        const now = new Date().toLocaleString('en-US', { timeZone: userTimezone });
-        const formattedTime = new Date(now).toLocaleTimeString('en-US', { hour12: false });
-        document.getElementById('digital-clock').textContent = `Local Time (${userTimezone}): ${formattedTime}`;
-    } catch (error) {
-        console.error('Error fetching local time:', error);
-        document.getElementById('digital-clock').textContent = `Local Time: N/A`;
-    }
-}
-
-// Function to update the Sun's position
-function updateSunPosition() {
+// Function to update the sunlight position based on local time
+function updateSunlight() {
     const now = new Date();
-    const lat = 0; // Change as needed for user location
-    const lon = 0; // Change as needed for user location
-    const date = new Date();
+    const hours = now.getUTCHours();
+    const minutes = now.getUTCMinutes();
+    const seconds = now.getUTCSeconds();
+    const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+    const lightAngle = (totalSeconds / 86400) * Math.PI * 2; // Total seconds in a day to angle
 
-    // Calculate Julian Date
-    const jd = (now.getTime() / 86400000) + 2440587.5;
-
-    // Calculate the Sun's position
-    const T = (jd - 2451545.0) / 36525.0;
-    const L0 = (280.46646 + 36000.76983 * T + 0.0003032 * T * T) % 360.0;
-    const M = (357.52911 + 35999.05029 * T - 0.0001537 * T * T) % 360.0;
-    const C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(M * Math.PI / 180.0) +
-              (0.019993 - 0.000101 * T) * Math.sin(2 * M * Math.PI / 180.0);
-    const sunLongitude = (L0 + C) % 360.0;
-    const sunDeclination = Math.asin(Math.sin(sunLongitude * Math.PI / 180.0) * Math.sin(23.439292 * Math.PI / 180.0)) * 180.0 / Math.PI;
-
-    // Set the Sun's position
-    const sunPosition = new THREE.Vector3(
-        earthRadius * Math.cos(sunDeclination * Math.PI / 180),
-        earthRadius * Math.sin(sunDeclination * Math.PI / 180),
-        0
+    sunlight.position.set(
+        Math.sin(lightAngle) * 1000,
+        Math.cos(lightAngle) * 1000,
+        500
     );
-    sunlight.position.copy(sunPosition);
 }
 
-// Animation loop
+// Function to animate the scene
 function animate() {
     requestAnimationFrame(animate);
-    controls.update(); // Update controls
-    updateSunPosition(); // Update Sun position
-    renderer.render(scene, camera);
+
+    controls.update(); // Update controls (if using orbit controls)
+
+    updateSunlight(); // Update sunlight position
+    renderer.render(scene, camera); // Render the scene
 }
-animate();
 
-// Update the ISS position every 5 seconds
-setInterval(updateISSPosition, 5000); // Update every 5 seconds
+// Initialize event listeners and other setup
+document.addEventListener('DOMContentLoaded', (event) => {
+    document.getElementById('menu-toggle').addEventListener('click', toggleMenu);
+    document.getElementById('more-button').addEventListener('click', openMenu);
+    document.getElementById('show-path').addEventListener('click', showISSPath);
 
-// Update the time every second
-setInterval(updateLocalTime, 1000); // Update every second
+    // Call updateISSPosition every 15 seconds
+    setInterval(updateISSPosition, 15000);
+    updateISSPosition(); // Initial call
 
-// Initial updates for ISS position, Sun position, and local time
-updateISSPosition();
-updateLocalTime();
-updateSunPosition();
-
-// Handle window resizing
-window.addEventListener('resize', () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+    // Start animation loop
+    animate();
 });
 
-// Toggle the visibility of the menu
+// Function to toggle menu visibility
 function toggleMenu() {
     const menu = document.getElementById('menu');
-    menu.classList.toggle('hidden');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 }
 
-// Function to open the NASA ISS page
-function openNASAISSPage() {
-    window.open('https://www.nasa.gov/mission_pages/station/main/index.html', '_blank');
-}
-
-// Function to open a 3D local model of the ISS
+// Function to open the 3D local model of the ISS
 function openISS3DModel() {
     window.open('https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en', '_blank');
 }
