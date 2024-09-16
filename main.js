@@ -70,6 +70,8 @@ function latLongToVector3(lat, lon, radius) {
 }
 
 // Function to update ISS position on the globe
+let lastCrewUpdate = 0; // Timestamp for the last crew update
+const crewUpdateInterval = 60000; // Update interval for crew data (e.g., 60 seconds)
 async function updateISSPosition() {
     try {
         // Fetch ISS position from the Where the ISS at? API
@@ -95,29 +97,25 @@ async function updateISSPosition() {
         document.getElementById('iss-lon').textContent = `Longitude: ${longitude.toFixed(2)}°`;
         document.getElementById('iss-alt').textContent = `Altitude: ${altitude.toFixed(2)} km`;
         document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
-        
+
+        // Fetch number of passengers (crew) from Open Notify API at a reasonable interval
+        const now = Date.now();
+        if (now - lastCrewUpdate >= crewUpdateInterval) {
+            lastCrewUpdate = now;
+            const crewResponse = await fetch('https://api.open-notify.org/astros.json');
+            if (!crewResponse.ok) throw new Error(`Network response was not ok: ${crewResponse.statusText}`);
+            const crewData = await crewResponse.json();
+
+            const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
+            document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
+        }
+
     } catch (error) {
-        console.error('Error fetching ISS position:', error);
+        console.error('Error fetching ISS position or crew:', error);
         document.getElementById('iss-lat').textContent = `Latitude: N/A`;
         document.getElementById('iss-lon').textContent = `Longitude: N/A`;
         document.getElementById('iss-alt').textContent = `Altitude: N/A`;
         document.getElementById('iss-vel').textContent = `Velocity: N/A`;
-    }
-}
-
-// Function to update the ISS details (including passengers)
-async function updateISSDetails() {
-    try {
-        // Fetch number of passengers (crew) from Open Notify API
-        const crewResponse = await fetch('https://api.open-notify.org/astros.json');
-        if (!crewResponse.ok) throw new Error(`Network response was not ok: ${crewResponse.statusText}`);
-        const crewData = await crewResponse.json();
-
-        const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
-        document.getElementById('iss-passengers').textContent = `Passengers: ${issCrew}`;
-        
-    } catch (error) {
-        console.error('Error fetching ISS crew:', error);
         document.getElementById('iss-passengers').textContent = `Passengers: N/A`;
     }
 }
@@ -152,7 +150,11 @@ function updateSunPosition() {
     const C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(M * Math.PI / 180.0) +
               (0.019993 - 0.000101 * T) * Math.sin(2 * M * Math.PI / 180.0);
     const sunLongitude = (L0 + C) % 360.0;
-    const sunDeclination = Math.asin(Math.sin(sunLongitude * Math.PI / 180.0) * Math.sin(23.439292 * Math.PI / 180.0)) * 180.0 / Math.PI;
+
+    // Earth's obliquity of the ecliptic (tilt of the Earth's axis)
+    const obliquity = 23.439292; // in degrees
+
+    const sunDeclination = Math.asin(Math.sin(sunLongitude * Math.PI / 180.0) * Math.sin(obliquity * Math.PI / 180.0)) * 180.0 / Math.PI;
 
     // Set the Sun's position
     const sunPosition = new THREE.Vector3(
@@ -175,9 +177,6 @@ animate();
 // Update the ISS position every 5 seconds
 setInterval(updateISSPosition, 5000); // Update every 5 seconds
 
-// Update the ISS details every 60 seconds
-setInterval(updateISSDetails, 60000); // Update every 60 seconds
-
 // Update the time every second
 setInterval(updateLocalTime, 1000); // Update every second
 
@@ -187,50 +186,39 @@ window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 });
-// Function to add event listeners for menu options
+
+// Add event listeners for menu interactions
 function addEventListeners() {
     const moreButton = document.getElementById('more-button');
-    if (!moreButton) {
-        console.error('Element with ID "more-button" not found');
-        return;
+    if (moreButton) {
+        moreButton.addEventListener('click', () => {
+            const menu = document.getElementById('menu');
+            if (menu) {
+                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            }
+        });
     }
 
-    moreButton.addEventListener('click', () => {
-        const menu = document.getElementById('options-menu');
-        if (menu) {
-            menu.classList.toggle('visible'); // Toggle menu visibility
-        } else {
-            console.error('Options menu not found');
-        }
-    });
-
-    const redirectButton = document.getElementById('menu-redirect');
-    if (!redirectButton) {
-        console.error('Element with ID "menu-redirect" not found');
-        return;
+    const redirectMenu = document.getElementById('menu-redirect');
+    if (redirectMenu) {
+        redirectMenu.addEventListener('click', () => {
+            window.open('https://www.nasa.gov/mission_pages/station/main/index.html', '_blank');
+        });
     }
-    redirectButton.addEventListener('click', () => {
-        window.open('https://www.nasa.gov/mission_pages/station/main/index.html', '_blank');
-    });
 
-    const open3DButton = document.getElementById('menu-open-3d');
-    if (!open3DButton) {
-        console.error('Element with ID "menu-open-3d" not found');
-        return;
+    const open3DMenu = document.getElementById('menu-open-3d');
+    if (open3DMenu) {
+        open3DMenu.addEventListener('click', () => {
+            window.open('https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en', '_blank');
+        });
     }
-    open3DButton.addEventListener('click', () => {
-        window.open('https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en', '_blank');
-    });
 
-    const showPathButton = document.getElementById('menu-show-path');
-    if (!showPathButton) {
-        console.error('Element with ID "menu-show-path" not found');
-        return;
+    const showPathMenu = document.getElementById('menu-show-path');
+    if (showPathMenu) {
+        showPathMenu.addEventListener('click', () => {
+            pathLine.visible = !pathLine.visible;
+        });
     }
-    showPathButton.addEventListener('click', () => {
-        pathLine.visible = !pathLine.visible; // Toggle path visibility
-    });
 }
 
-// Call the function to add event listeners
 addEventListeners();
