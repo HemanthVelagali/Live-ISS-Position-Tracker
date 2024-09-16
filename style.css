@@ -11,11 +11,11 @@
 /* ISS Info styling */
 #iss-info {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    top: 20px;
+    left: 20px;
     background: rgba(0, 0, 0, 0.7);
     color: white;
-    padding: 10px;
+    padding: 15px;
     border-radius: 5px;
     font-family: Arial, sans-serif;
     font-size: 14px;
@@ -29,11 +29,11 @@
 /* Digital Clock styling */
 #digital-clock {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 20px;
+    right: 20px;
     background: rgba(0, 0, 0, 0.7);
     color: white;
-    padding: 10px;
+    padding: 15px;
     border-radius: 5px;
     font-family: Arial, sans-serif;
     font-size: 14px;
@@ -43,8 +43,8 @@
 /* More Button styling */
 #more-button {
     position: absolute;
-    bottom: 10px;
-    right: 10px;
+    bottom: 20px;
+    right: 20px;
     padding: 10px;
     background-color: #333;
     color: white;
@@ -58,13 +58,12 @@
 /* Menu Styling */
 #menu {
     position: absolute;
-    bottom: 50px;
-    right: 10px;
+    bottom: 70px;
+    right: 20px;
     background: rgba(0, 0, 0, 0.7);
     color: white;
     padding: 10px;
     border-radius: 5px;
-    display: none;
     z-index: 10;
 }
 
@@ -86,4 +85,9 @@
 /* Hidden class for menu */
 .hidden {
     display: none;
+}
+
+/* Visible class to show the menu */
+.visible {
+    display: block;
 }
