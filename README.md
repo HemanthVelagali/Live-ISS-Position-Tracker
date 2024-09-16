@@ -14,9 +14,8 @@ How to Run
 Clone the repository:
 bash
 Copy code
-git clone https://github.com/[YourUsername]/[RepositoryName].git
+https://hemanthvelagali.github.io/Live-ISS-Position-Tracker/
 Open index.html in your browser.
-License
-MIT License
+
 
 
