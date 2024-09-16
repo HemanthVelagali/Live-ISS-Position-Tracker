@@ -1,118 +1,135 @@
+/* Basic styling for body and html */
 body, html {
     margin: 0;
     padding: 0;
-    overflow: hidden;
-    background-color: #000;
-    font-family: Arial, sans-serif;
+    overflow: hidden; /* Prevents scrollbars from appearing */
+    background-color: #000; /* Black background for a space-like feel */
+    font-family: Arial, sans-serif; /* Font for the entire page */
 }
 
+/* Container for the 3D globe */
 #globe-container {
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    width: 100vw;  /* Full viewport width */
+    height: 100vh; /* Full viewport height */
+    display: flex; /* Flexbox for centering content */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
 }
 
+/* Styling for informational boxes */
 .info-box {
     position: absolute;
-    background-color: rgba(0, 0, 0, 0.6);
-    color: #fff;
-    padding: 10px;
-    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+    color: #fff; /* White text color */
+    padding: 10px; /* Padding around content */
+    border-radius: 8px; /* Rounded corners */
 }
 
+/* Position and size for top-right info box */
 .top-right {
     top: 20px;
     right: 20px;
-    width: 200px;
+    width: 200px; /* Fixed width */
 }
 
+/* Position and size for top-left info box */
 .top-left {
     top: 20px;
     left: 20px;
-    width: 200px;
+    width: 200px; /* Fixed width */
 }
 
+/* Position and size for bottom-left info box */
 .bottom-left {
     bottom: 20px;
     left: 20px;
-    width: 200px;
+    width: 200px; /* Fixed width */
 }
 
+/* Position and size for bottom-right info box */
 .bottom-right {
     bottom: 20px;
     right: 20px;
-    width: 50px;
-    height: 50px;
-    text-align: center;
+    width: 50px; /* Smaller width for the button container */
+    height: 50px; /* Square container */
+    text-align: center; /* Center content */
 }
 
+/* Styling for heading in info boxes */
 .info-box h3 {
-    margin: 0 0 10px 0;
-    font-size: 18px;
-    border-bottom: 1px solid #fff;
-    padding-bottom: 5px;
+    margin: 0 0 10px 0; /* Margin around heading */
+    font-size: 18px; /* Font size for headings */
+    border-bottom: 1px solid #fff; /* Underline the heading */
+    padding-bottom: 5px; /* Padding below the heading */
 }
 
+/* Styling for paragraphs in info boxes */
 .info-box p {
-    margin: 5px 0;
-    font-size: 14px;
+    margin: 5px 0; /* Margin around paragraphs */
+    font-size: 14px; /* Font size for paragraphs */
 }
 
+/* Styling for "More Options" button */
 #more-options {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    width: 50px;
-    height: 50px;
-    text-align: center;
+    width: 50px; /* Fixed width for button */
+    height: 50px; /* Fixed height for button */
+    text-align: center; /* Center content */
 }
 
+/* Styling for the button */
 button {
-    width: 100%;
-    height: 100%;
-    background-color: #333;
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 24px;
-    line-height: 50px;
-    text-align: center;
+    width: 100%; /* Fill container width */
+    height: 100%; /* Fill container height */
+    background-color: #333; /* Dark background color */
+    color: #fff; /* White text color */
+    border: none; /* Remove default border */
+    border-radius: 50%; /* Circular button */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 24px; /* Font size for button text */
+    line-height: 50px; /* Vertically center text */
+    text-align: center; /* Horizontally center text */
 }
 
+/* Hover effect for button */
 button:hover {
-    background-color: #555;
+    background-color: #555; /* Lighter background on hover */
 }
 
+/* Styling for options menu */
 #options-menu {
     position: absolute;
-    bottom: 60px;
+    bottom: 60px; /* Position above the button */
     right: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    padding: 15px;
-    border-radius: 8px;
-    width: 220px;
-    display: none;
+    background-color: rgba(0, 0, 0, 0.6); /* Slightly transparent background */
+    padding: 15px; /* Padding around menu content */
+    border-radius: 8px; /* Rounded corners */
+    width: 220px; /* Fixed width for menu */
+    display: none; /* Hide by default */
 }
 
+/* Remove default list styles for menu */
 #options-menu ul {
     list-style-type: none;
     margin: 0;
     padding: 0;
 }
 
+/* Styling for list items in the menu */
 #options-menu ul li {
-    margin: 15px 0;
+    margin: 15px 0; /* Margin between menu options */
 }
 
+/* Styling for links in the menu */
 #options-menu ul li a {
-    color: #fff;
-    text-decoration: none;
-    font-size: 18px;
+    color: #fff; /* White text color */
+    text-decoration: none; /* Remove underline from links */
+    font-size: 18px; /* Font size for links */
 }
 
+/* Hover effect for links in the menu */
 #options-menu ul li a:hover {
-    text-decoration: underline;
+    text-decoration: underline; /* Underline on hover */
 }
