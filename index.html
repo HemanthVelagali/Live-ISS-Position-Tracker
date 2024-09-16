@@ -3,36 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISS Live Tracker</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>ISS Live Tracker with OrbitControls</title>
+    <link rel="stylesheet" href="style.css"> <!-- Linking external CSS stylesheet for styling -->
+    
+    <!-- Import Three.js library from CDN for 3D rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Import OrbitControls library from CDN for camera control in 3D space -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.110.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
+    <!-- Container for rendering the 3D globe -->
     <div id="globe-container"></div>
 
-    <!-- ISS Details -->
-    <div id="iss-info">
+    <!-- Section for displaying ISS coordinates -->
+    <div id="iss-coordinates" class="info-box top-right">
+        <h3>ISS Coordinates</h3>
         <p id="iss-lat">Latitude: Loading...</p>
         <p id="iss-lon">Longitude: Loading...</p>
+    </div>
+
+    <!-- Section for displaying ISS details -->
+    <div id="iss-details" class="info-box top-left">
+        <h3>ISS Details</h3>
         <p id="iss-alt">Altitude: Loading...</p>
         <p id="iss-vel">Velocity: Loading...</p>
-        <p id="iss-passengers">Passengers: 9</p>
+        <p id="iss-passengers">Passengers: Loading...</p>
     </div>
 
-    <!-- Digital Clock -->
-    <div id="digital-clock">Local Time: Loading...</div>
-
-    <!-- More Button and Menu -->
-    <button id="more-button">More</button>
-    <div id="menu" class="hidden">
-        <ul>
-            <li id="menu-redirect">Go to NASA ISS Page</li>
-            <li id="menu-open-3d">Open 3D ISS Model</li>
-            <li id="menu-show-path">Show ISS Path</li>
-        </ul>
+    <!-- Section for displaying local time -->
+    <div id="local-time" class="info-box bottom-left">
+        <h3>Local Time</h3>
+        <p id="digital-clock">Fetching time...</p>
     </div>
 
-    <script src="three.min.js"></script>
-    <script src="OrbitControls.js"></script>
-    <script src="script.js"></script>
+    <!-- "Three Dots" Button with options menu -->
+    <div id="more-options" class="info-box bottom-right">
+        <button id="more-btn">⋮</button> <!-- Button to toggle options menu -->
+        <div id="options-menu">
+            <ul>
+                <!-- Options in the menu -->
+                <li><a href="https://www.nasa.gov/mission_pages/station/main/index.html" target="_blank">NASA ISS Page</a></li>
+                <li><a href="https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en" target="_blank">3D Model of ISS</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Link to external JavaScript file for functionality -->
+    <script src="main.js"></script>
+    <script>
+        // Toggle the visibility of the options menu when the button is clicked
+        document.getElementById('more-btn').addEventListener('click', () => {
+            const optionsMenu = document.getElementById('options-menu');
+            optionsMenu.style.display = optionsMenu.style.display === 'none' ? 'block' : 'none';
+        });
+    </script>
 </body>
 </html>
