@@ -16,6 +16,29 @@ body, html {
     align-items: center; /* Center vertically */
 }
 
+/* Project Title Styling */
+#project-title {
+    position: absolute; /* Positioning for overlay effect */
+    top: 20px; /* Distance from the top of the viewport */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Center horizontally */
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+    color: #fff; /* White text color */
+    padding: 10px; /* Padding around title */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); /* Shadow for better visibility */
+    text-align: center; /* Center text horizontally */
+    width: auto; /* Auto width for the title */
+    max-width: 90%; /* Maximum width relative to viewport */
+}
+
+/* Title heading */
+#project-title h1 {
+    margin: 0; /* Remove default margin */
+    font-size: 24px; /* Font size for the title */
+    font-weight: bold; /* Bold text for emphasis */
+}
+
 /* Styling for informational boxes */
 .info-box {
     position: absolute;
@@ -169,5 +192,19 @@ button:hover {
     /* Adjust bottom info boxes to fit better */
     .bottom-left, .bottom-right {
         width: 150px; /* Smaller width for mobile */
+    }
+
+    /* Adjust title for mobile screens */
+    #project-title {
+        font-size: 20px; /* Smaller font size for mobile */
+        top: 10px; /* Adjust top position */
+        left: 50%; /* Center horizontally */
+        transform: translateX(-50%); /* Center horizontally */
+        padding: 8px; /* Less padding for mobile */
+    }
+
+    /* Title heading */
+    #project-title h1 {
+        font-size: 18px; /* Smaller font size for mobile */
     }
 }
