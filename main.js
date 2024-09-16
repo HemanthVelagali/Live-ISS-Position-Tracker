@@ -74,7 +74,6 @@ let lastKnownLatitude = 'N/A';
 let lastKnownLongitude = 'N/A';
 let lastKnownAltitude = 'N/A';
 let lastKnownVelocity = 'N/A';
-let lastKnownPassengers = '9';
 
 // Function to update ISS position on the globe
 async function updateISSPosition() {
@@ -109,23 +108,14 @@ async function updateISSPosition() {
         document.getElementById('iss-alt').textContent = `Altitude: ${lastKnownAltitude} km`;
         document.getElementById('iss-vel').textContent = `Velocity: ${lastKnownVelocity} km/h`;
         
-        // Fetch number of passengers (crew) from Open Notify API
-        const crewResponse = await fetch('https://api.open-notify.org/astros.json');
-        if (!crewResponse.ok) throw new Error('Network response was not ok.');
-        const crewData = await crewResponse.json();
-        
-        const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
-        lastKnownPassengers = issCrew;
-        document.getElementById('iss-passengers').textContent = `Passengers: ${lastKnownPassengers}`;
 
     } catch (error) {
-        console.error('Error fetching ISS position or crew:', error);
+        console.error('Error fetching ISS position:', error);
         // Use stored values if fetch fails
         document.getElementById('iss-lat').textContent = `Latitude: ${lastKnownLatitude}`;
         document.getElementById('iss-lon').textContent = `Longitude: ${lastKnownLongitude}`;
         document.getElementById('iss-alt').textContent = `Altitude: ${lastKnownAltitude}`;
         document.getElementById('iss-vel').textContent = `Velocity: ${lastKnownVelocity}`;
-        document.getElementById('iss-passengers').textContent = `Passengers: 9 `;
     }
 }
 
