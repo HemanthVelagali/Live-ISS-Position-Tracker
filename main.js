@@ -74,7 +74,7 @@ async function updateISSPosition() {
     try {
         // Fetch ISS position from the Where the ISS at? API
         const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
-        if (!response.ok) throw new Error('Network response was not ok.');
+        if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
         const data = await response.json();
 
         const latitude = data.latitude;
@@ -100,7 +100,7 @@ async function updateISSPosition() {
         
         // Fetch number of passengers (crew) from Open Notify API
         const crewResponse = await fetch('https://api.open-notify.org/astros.json');
-        if (!crewResponse.ok) throw new Error('Network response was not ok.');
+        if (!crewResponse.ok) throw new Error(`Network response was not ok: ${crewResponse.statusText}`);
         const crewData = await crewResponse.json();
         
         const issCrew = crewData.people.filter(person => person.craft === 'ISS').length;
