@@ -10,7 +10,7 @@ const sunUpdateInterval = 3600000; // Update Sun position every hour
 function init() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById('globe-container').appendChild(renderer.domElement);
 
@@ -32,8 +32,28 @@ function init() {
     issPathLine = new THREE.Line(pathGeometry, pathMaterial);
     scene.add(issPathLine);
 
-    animate();
-    fetchISSData(); // Fetch initial ISS data
+    // Load textures and create the globe
+    loadTextures();
+}
+
+// Load textures
+function loadTextures() {
+    const textureLoader = new THREE.TextureLoader();
+    const earthTexture = textureLoader.load('assets/earth.jpg', () => {
+        const earthGeometry = new THREE.SphereGeometry(2, 64, 64);
+        const earthMaterial = new THREE.MeshPhongMaterial({ map: earthTexture });
+        const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+        scene.add(earthMesh);
+
+        const ambientLight = new THREE.AmbientLight(0x333333);
+        scene.add(ambientLight);
+
+        const sunlight = new THREE.DirectionalLight(0xffffff, 1.0);
+        sunlight.position.set(5, 5, 5).normalize();
+        scene.add(sunlight);
+    }, undefined, (error) => {
+        console.error('Error loading Earth texture:', error);
+    });
 }
 
 // Animate the scene
@@ -46,7 +66,7 @@ function animate() {
 // Update ISS position
 function updateISSPosition(lat, lon) {
     // Convert latitude and longitude to 3D coordinates
-    const radius = 2.5; // Adjust based on globe scale
+    const radius = 2; // Adjust based on globe scale
     const phi = (90 - lat) * (Math.PI / 180);
     const theta = (lon + 180) * (Math.PI / 180);
 
@@ -93,13 +113,18 @@ async function fetchISSData() {
     setTimeout(fetchISSData, updateInterval);
 }
 
-// Update local time
+// Update local time with time zone
 function updateLocalTime() {
     const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const seconds = now.getSeconds().toString().padStart(2, '0');
-    document.getElementById('digital-clock').innerText = `${hours}:${minutes}:${seconds}`;
+    const options = {
+        timeZoneName: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    };
+    const localTimeString = now.toLocaleTimeString('en-US', options);
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    document.getElementById('digital-clock').innerText = `Local Time (${timeZone}): ${localTimeString}`;
 }
 
 // Update Sun position (mock function)
@@ -112,3 +137,7 @@ function updateSunPosition() {
 init();
 setInterval(updateLocalTime, 1000); // Update local time every second
 setInterval(updateSunPosition, sunUpdateInterval); // Update Sun position every hour
+
+// Start the data fetch and animation
+fetchISSData();
+animate();
