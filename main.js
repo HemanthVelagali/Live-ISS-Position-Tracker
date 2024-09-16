@@ -55,7 +55,6 @@ const labelGeometry = new THREE.PlaneGeometry(30, 10);
 const labelTexture = new THREE.TextureLoader().load('assets/label.png'); // Replace with your label image
 const labelMaterial = new THREE.MeshBasicMaterial({ map: labelTexture, transparent: true, opacity: 0.7 });
 const issLabel = new THREE.Mesh(labelGeometry, labelMaterial);
-issLabel.position.set(0, 10, 0); // Adjust position relative to the ISS marker
 scene.add(issLabel);
 
 // Path line geometry and material
@@ -79,10 +78,10 @@ function latLongToVector3(lat, lon, radius) {
 
 // Function to update ISS position on the globe
 let previousData = {
-    latitude: 'Loading...',
-    longitude: 'Loading...',
-    altitude: 'Loading...',
-    velocity: 'Loading...'
+    latitude: 'N/A',
+    longitude: 'N/A',
+    altitude: 'N/A',
+    velocity: 'N/A'
 };
 
 async function updateISSPosition() {
@@ -113,22 +112,18 @@ async function updateISSPosition() {
         // Update ISS Details Display
         document.getElementById('iss-alt').textContent = `Altitude: ${altitude.toFixed(2)} km`;
         document.getElementById('iss-vel').textContent = `Velocity: ${velocity.toFixed(2)} km/h`;
-
-        // Save data to previousData
-        previousData = {
-            latitude: `${latitude.toFixed(2)}°`,
-            longitude: `${longitude.toFixed(2)}°`,
-            altitude: `${altitude.toFixed(2)} km`,
-            velocity: `${velocity.toFixed(2)} km/h`
-        };
+        
+        // Set a fixed number of passengers
+        document.getElementById('iss-passengers').textContent = `Passengers: 9`;
 
     } catch (error) {
-        console.error('Error fetching ISS position:', error);
+        console.error('Error fetching ISS position or crew:', error);
         // Use previous data if available
         document.getElementById('iss-lat').textContent = `Latitude: ${previousData.latitude}`;
         document.getElementById('iss-lon').textContent = `Longitude: ${previousData.longitude}`;
         document.getElementById('iss-alt').textContent = `Altitude: ${previousData.altitude}`;
         document.getElementById('iss-vel').textContent = `Velocity: ${previousData.velocity}`;
+        document.getElementById('iss-passengers').textContent = `Passengers: 9`;
     }
 }
 
@@ -141,29 +136,92 @@ function updateLocalTime() {
         document.getElementById('digital-clock').textContent = `Local Time (${userTimezone}): ${formattedTime}`;
     } catch (error) {
         console.error('Error fetching local time:', error);
+        document.getElementById('digital-clock').textContent = `Local Time: N/A`;
     }
 }
 
-// Animation loop to update and render the scene
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update(); // Update controls for smooth camera movement
-    renderer.render(scene, camera);
+// Function to update the Sun's position
+function updateSunPosition() {
+    const now = new Date();
+    const lat = 0; // Change as needed for user location
+    const lon = 0; // Change as needed for user location
+    const date = new Date();
+
+    // Calculate Julian Date
+    const jd = (now.getTime() / 86400000) + 2440587.5;
+
+    // Calculate the Sun's position
+    const T = (jd - 2451545.0) / 36525.0;
+    const L0 = (280.46646 + 36000.76983 * T + 0.0003032 * T * T) % 360.0;
+    const M = (357.52911 + 35999.05029 * T - 0.0001537 * T * T) % 360.0;
+    const C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(M * Math.PI / 180.0) +
+              (0.019993 - 0.000101 * T) * Math.sin(2 * M * Math.PI / 180.0);
+    const sunLongitude = (L0 + C) % 360.0;
+    const sunDeclination = Math.asin(Math.sin(sunLongitude * Math.PI / 180.0) * Math.sin(23.439292 * Math.PI / 180.0)) * 180.0 / Math.PI;
+
+    // Set the Sun's position
+    const sunPosition = new THREE.Vector3(
+        earthRadius * Math.cos(sunDeclination * Math.PI / 180),
+        earthRadius * Math.sin(sunDeclination * Math.PI / 180),
+        0
+    );
+    sunlight.position.copy(sunPosition);
 }
 
-animate(); // Start the animation loop
+// Animation loop
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update(); // Update controls
+    updateSunPosition(); // Update Sun position
+    renderer.render(scene, camera);
+}
+animate();
 
-// Update ISS position every 15 seconds
+// Update the ISS position every 15 seconds
+setInterval(updateISSPosition, 15000); // Update every 15 seconds
+
+// Update the time every second
+setInterval(updateLocalTime, 1000); // Update every second
+
+// Initial updates for ISS position, Sun position, and local time
 updateISSPosition();
-setInterval(updateISSPosition, 15000);
-
-// Update local time every second
 updateLocalTime();
-setInterval(updateLocalTime, 1000);
+updateSunPosition();
 
 // Handle window resizing
 window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+// Toggle the visibility of the menu
+function toggleMenu() {
+    const menu = document.getElementById('menu');
+    menu.classList.toggle('hidden');
+}
+
+// Function to open the NASA ISS page
+function openNASAISSPage() {
+    window.open('https://www.nasa.gov/mission_pages/station/main/index.html', '_blank');
+}
+
+// Function to open a 3D local model
+function open3DModel() {
+    // Redirect to the 3D model
+    window.open('https://artsandculture.google.com/asset/international-space-station-3d-model-nasa/1wEkLGp7VFjRvw?hl=en', '_blank');
+}
+
+// Function to show the ISS path on the map
+function showISSPath() {
+    // Placeholder for showing ISS path
+    alert('Show ISS Path feature is not implemented yet.');
+}
+
+// Event listeners for menu options
+document.getElementById('menu-redirect').addEventListener('click', openNASAISSPage);
+document.getElementById('menu-open-3d').addEventListener('click', open3DModel);
+document.getElementById('menu-show-path').addEventListener('click', showISSPath);
+
+// Event listener for the "More" button
+document.getElementById('more-button').addEventListener('click', toggleMenu);
