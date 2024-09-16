@@ -125,7 +125,7 @@ async function updateISSPosition() {
         document.getElementById('iss-lon').textContent = `Longitude: ${lastKnownLongitude}`;
         document.getElementById('iss-alt').textContent = `Altitude: ${lastKnownAltitude}`;
         document.getElementById('iss-vel').textContent = `Velocity: ${lastKnownVelocity}`;
-        document.getElementById('iss-passengers').textContent = `Passengers: ${lastKnownPassengers}`;
+        document.getElementById('iss-passengers').textContent = `Passengers: 9 `;
     }
 }
 
